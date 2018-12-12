@@ -1,6 +1,8 @@
 #!/bin/bash
 EXCLUDECPUSER='arinex'
 SCANMAXDEPTH=2
+#Take a backup of the system crontabs
+rsync -avhx /var/spool/cron/ /root/cronbackups/
 #This loop goes through each domain listed in /etc/userdatadomains which should list every cPanel domain, and subdomain on the server.
 while read LINE; do
     DOMAIN=`echo "$LINE" | cut -d ':' -f1`
