@@ -31,8 +31,8 @@ while read LINE; do
             echo "$WPCONFIGPATH" backed up to "$WPCONFIGPATH".bak
             #Copy wp-config.php to wp-config.php.bak
             cp "$WPCONFIGPATH"{,.bak}
-            #Append the disable wp cron line to wp-config.php
-            echo "define('DISABLE_WP_CRON', 'true');" >> "$WPCONFIGPATH"
+            #Append the disable wp cron line to wp-config.php, before the first define statement
+            sed -i.bak "0,/define/s//define('DISABLE_WP_CRON', 'true')\;\ndefine/" wp-config.php
         fi
             #Get the folder name (this strips the trailing /wp-config.php out of the string)
             FOLDER=`dirname "$WPCONFIGPATH"`
