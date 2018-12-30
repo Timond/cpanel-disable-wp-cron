@@ -5,6 +5,8 @@
 #any wp-config.php files, and sets define('DISABLE_WP_CRON', 'true'); inside the file.
 #It then adds a crontab entry (echo "*/5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1) to the users crontab
 
+
+
 #This function takes TWO arguments - $1 = The System username who's crontab will be modified, $2 = Path to the wp-config.php file
 function ModifyCrontab() {
 	CPANELUSERNAME="$1"
@@ -14,7 +16,7 @@ function ModifyCrontab() {
 		#Get the folder name (this strips the trailing /wp-config.php out of the string)
 		FOLDER=`dirname "$FILEPATH"`
 		#Lists the current crontab, appends the new cronjob, sorts and removes duplicates, reinstalls the crontab - and makes sure to work even with an empty crontab
-		echo "Adding */5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1 to "$CPANELUSERNAME"s crontab"
+		echo "Adding */5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1 to "$CPANELUSERNAME"'s crontab"
 		( (crontab -l -u "$CPANELUSERNAME" 2>/dev/null || echo "") ; echo "*/5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1") | sort -u | crontab -u "$CPANELUSERNAME" -
 	done <<< "$WPCONFIGPATH"
 }
@@ -28,7 +30,7 @@ function ModifyWPConfig() {
 			grep -i "DISABLE_WP_CRON" "$FILEPATH" > /dev/null
 			#If there is already a DISABLE_WP_CRON line found, then replace it
 			if [ $? -eq 0 ]; then
-				echo "Modifying existing DISABLE_WP_CRON entry in $FILEPATH"
+				echo "Modifying existing DISABLE_WP_CRON entry inside $FILEPATH."
 				#take a backup of the current wp-config.php and change the relevent line
 				sed -i.bak "s/.*DISABLE_WP_CRON.*/define('DISABLE_WP_CRON', 'true');/gI" "$FILEPATH"
 			else
@@ -49,15 +51,23 @@ function Main() {
 	rsync -avhxq /var/spool/cron/ /root/cronbackups/
 	#Loop through /etc/userdatadomains, and for each domain, get the cPanel username, and document root.
 	while read LINE; do
+		DOMAIN=`echo "$LINE" | cut -d ':' -f1`
 		DOCROOT=`echo "$LINE" | cut -d '=' -f9`
 		USERNAME=`echo "$LINE" | cut -d '=' -f1 | cut -d ':' -f2 | xargs -I {} echo {}`
 		#Find any wp-config.php files inside the document root
 		CONFIGPATHS=`find "$DOCROOT" -type f -name wp-config.php`
+		echo "Domain: $DOMAIN"
+		echo "User: $USERNAME"
+		echo "Docroot: $DOCROOT"
 		if [ -n "$CONFIGPATHS"  ]; then
+			echo "wp-config.php files found:"
+			echo "$CONFIGPATHS"
 			#Insert or Modify the WP_CRON line in to each wp-config.php file
 			ModifyWPConfig "$CONFIGPATHS"
 			#Add the relevent crontab entry to the cPanel username's crontab
 			ModifyCrontab "$USERNAME" "$CONFIGPATHS"
+		else
+			echo "no wp-config.php files detected"
 		fi
 	done < /etc/userdatadomains
 }
