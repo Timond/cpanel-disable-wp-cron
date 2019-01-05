@@ -4,9 +4,11 @@
 #Written by Tim Duncan for Servers Australia - Dec 31 2018
 #This script scans the docroot for the domain CPANEL_USERNAME which is passed to this script as the first argument. It finds
 #any wp-config.php files, and sets define('DISABLE_WP_CRON', 'true'); inside the file.
-#It then adds a crontab entry (echo "*/5 * * * * cd ""$FOLDER""; sleep $SLEEP_VALUE; php -q wp-cron.php >/dev/null 2>&1) to the users crontab
+#It then adds a crontab entry (echo "*/5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1) to the users crontab
 
 #This function takes TWO arguments - $1 = The System username who's crontab will be modified, $2 = List of Paths to the wp-config.php file
+
+DATE_STRING=`date +%s`
 if [ -z "$1" ]; then
 	echo No user set - exiting;
 	exit 1;
@@ -50,12 +52,12 @@ function ModifyWPConfig() {
 			if [ $? -eq 0 ]; then
 				echo "Modifying existing DISABLE_WP_CRON entry inside $FILE_PATH."
 				#take a backup of the current wp-config.php and change the relevent line
-				sed -i.bak "s/.*DISABLE_WP_CRON.*/define('DISABLE_WP_CRON', 'true');/gI" "$FILE_PATH"
+				sed -i.bak"$DATE_STRING" "s/.*DISABLE_WP_CRON.*/define('DISABLE_WP_CRON', 'true');/gI" "$FILE_PATH"
 			else
 				#If there is NOT a DISABLE_WP_CRON line found, then add it above the first define statement
 				#Append the disable wp cron line to wp-config.php, before the first define statement
 				echo "Adding DISABLE_WP_CRON statement to $FILE_PATH"
-				sed -i.bak "0,/define/s//define('DISABLE_WP_CRON', 'true')\;\ndefine/" "$FILE_PATH"
+				sed -i.bak"$DATE_STRING" "0,/define/s//define('DISABLE_WP_CRON', 'true')\;\ndefine/" "$FILE_PATH"
 			fi
 		else
 			echo "ERROR: FILE DOESN'T EXIST: $FILE_PATH"
@@ -84,7 +86,7 @@ function DisableWpCron() {
 FIRST_RUN="YES"
 #Take a backup of the system crontabs
 echo "Backing up /var/spool/cron/ to /root/cronbackups/"
-rsync -avhxq /var/spool/cron/ /root/cronbackups/
+rsync -avhxq /var/spool/cron/ /root/cronbackups."$DATE_STRING"/
 USERDATA=`grep "$1" /etc/userdatadomains`
 while read LINE; do
 	DOMAIN=`echo "$LINE" | cut -d ':' -f1`
