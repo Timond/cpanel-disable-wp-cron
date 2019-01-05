@@ -4,7 +4,7 @@
 #Written by Tim Duncan for Servers Australia - Dec 31 2018
 #This script scans the docroot for the domain CPANEL_USERNAME which is passed to this script as the first argument. It finds
 #any wp-config.php files, and sets define('DISABLE_WP_CRON', 'true'); inside the file.
-#It then adds a crontab entry (echo "*/5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1) to the users crontab
+#It then adds a crontab entry (echo "*/5 * * * * cd ""$FOLDER""; sleep $SLEEP_VALUE; php -q wp-cron.php >/dev/null 2>&1) to the users crontab
 
 #This function takes TWO arguments - $1 = The System username who's crontab will be modified, $2 = List of Paths to the wp-config.php file
 if [ -z "$1" ]; then
