@@ -6,6 +6,7 @@
 #It then adds a crontab entry (echo "*/5 * * * * cd ""$FOLDER""; php -q wp-cron.php >/dev/null 2>&1) to the users crontab
 
 #This function takes TWO arguments - $1 = The System username who's crontab will be modified, $2 = List of Paths to the wp-config.php file
+DATE_STRING=`date +%s`
 function ModifyCrontab() {
 	CPANEL_USERNAME="$1"
 	WP_CONFIG_PATH="$2"
@@ -34,12 +35,12 @@ function ModifyWPConfig() {
 			if [ $? -eq 0 ]; then
 				echo "Modifying existing DISABLE_WP_CRON entry inside $FILE_PATH."
 				#take a backup of the current wp-config.php and change the relevent line
-				sed -i.bak "s/.*DISABLE_WP_CRON.*/define('DISABLE_WP_CRON', 'true');/gI" "$FILE_PATH"
+				sed -i.bak"$DATE_STRING" "s/.*DISABLE_WP_CRON.*/define('DISABLE_WP_CRON', 'true');/gI" "$FILE_PATH"
 			else
 				#If there is NOT a DISABLE_WP_CRON line found, then add it above the first define statement
 				#Append the disable wp cron line to wp-config.php, before the first define statement
 				echo "Adding DISABLE_WP_CRON statement to $FILE_PATH"
-				sed -i.bak "0,/define/s//define('DISABLE_WP_CRON', 'true')\;\ndefine/" "$FILE_PATH"
+				sed -i.bak"$DATE_STRING" "0,/define/s//define('DISABLE_WP_CRON', 'true')\;\ndefine/" "$FILE_PATH"
 			fi
 		else
 			echo "ERROR: FILE DOESN'T EXIST: $FILE_PATH"
@@ -67,7 +68,7 @@ function DisableWpCron() {
 #Main
 FIRST_RUN="YES"
 #Take a backup of the system crontabs
-echo "Backing up /var/spool/cron/ to /root/cronbackups/"
+echo "Backing up /var/spool/cron/ to /root/cronbackups."$DATE_STRING"/"
 rsync -avhxq /var/spool/cron/ /root/cronbackups/
 #Loop through /etc/userdatadomains, and for each domain, get the cPanel username, and document root.
 while read LINE; do
