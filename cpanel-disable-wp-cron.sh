@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# WARNING - DO NOT RUN THIS ON A SERVER WITH TOO MANY SITES. 
+# ALL THE CRONS WILL RUN AT THE SAME TIME AND POTENTIALLY CAUSE HIGH LOAD
+
 #Written by Tim Duncan for Servers Australia - Dec 31 2018
 #This script scans the docroot for all domains listed in /etc/userdatadomains on a cPanel server, finds
 #any wp-config.php files, and sets define('DISABLE_WP_CRON', 'true'); inside the file.
